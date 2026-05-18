@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
 
                 // Define and add headers to the table
-                const headers = ['Title', 'Rating', 'Reviews', 'Phone', 'Industry', 'Address', 'Website', 'Google Maps Link'];
+                const headers = ['Title', 'Rating', 'Reviews', 'Phone', 'Industry', 'Address', 'Website', 'Latitude', 'Longitude', 'Google Maps Link'];
                 const headerRow = document.createElement('tr');
                 headers.forEach(headerText => {
                     const header = document.createElement('th');
@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!results || !results[0] || !results[0].result) return;
                 results[0].result.forEach(function(item) {
                     var row = document.createElement('tr');
-                    ['title', 'rating', 'reviewCount', 'phone', 'industry', 'address', 'companyUrl', 'href'].forEach(function(key) {
+                    ['title', 'rating', 'reviewCount', 'phone', 'industry', 'address', 'companyUrl', 'latitude', 'longitude', 'href'].forEach(function(key) {
                         var cell = document.createElement('td');
                         
                         if (key === 'reviewCount' && item[key]) {
@@ -155,6 +155,23 @@ function scrapeData() {
             phone = phoneMatch ? phoneMatch[0] : '';
         }
 
+        // Exact pin coordinates from the place URL
+        var latitude = '';
+        var longitude = '';
+        // The "data=" param holds the exact pin: !3d<lat>!4d<lng>
+        var pinMatch = link.href.match(/!3d(-?\d+(?:\.\d+)?)!4d(-?\d+(?:\.\d+)?)/);
+        if (pinMatch) {
+            latitude = pinMatch[1];
+            longitude = pinMatch[2];
+        } else {
+            // Fallback: the "@lat,lng" viewport center
+            var atMatch = link.href.match(/@(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/);
+            if (atMatch) {
+                latitude = atMatch[1];
+                longitude = atMatch[2];
+            }
+        }
+
         // Return the data as an object
         return {
             title: titleText,
@@ -164,6 +181,8 @@ function scrapeData() {
             industry: industry,
             address: address,
             companyUrl: companyUrl,
+            latitude: latitude,
+            longitude: longitude,
             href: link.href,
         };
     });
